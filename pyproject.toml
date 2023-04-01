@@ -1,0 +1,34 @@
+[tool.black]
+line-length = 100
+target-version = ['py37']
+
+[tool.ruff]
+ignore = []
+target-version = "py37"
+line-length = 100
+select = [
+    "B",
+    "C",
+    "C90",
+    "D",
+    "E",
+    "F",
+    "I",
+    "W",
+]
+
+fixable = [
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "I",
+    "W",
+]
+
+[tool.ruff.mccabe]
+max-complexity = 18
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
