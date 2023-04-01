@@ -1,4 +1,5 @@
-"""Setup configuration rushd.
+"""Setup configuration for internal-acme-dns.
+
 For local development, use
 `pip install -e .[dev]`
 which will install additional dev tools.
@@ -14,7 +15,7 @@ setuptools.setup(
     version="0.0.1",
     author="Christopher Johnstone",
     author_email="meson800@gmail.com",
-    description="Package for maintaining robust, reproducible data management.",
+    description="Package for responding to internal domain DNS ACME requests.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/meson800/internal-acme-dns",
@@ -27,8 +28,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        "Topic :: Scientific/Engineering",
-        "Topic :: Utilities",
     ],
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),

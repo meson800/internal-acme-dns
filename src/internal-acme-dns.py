@@ -1,14 +1,12 @@
-"""
-Starts both an HTTP and a DNS server to serve validation requests.
-"""
+"""Starts both an HTTP and a DNS server to serve validation requests."""
 
-from typing import Dict, Optional
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import json
 import base64
 import fnmatch
+import json
 import os
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from typing import Dict, Optional
 
 import dnslib
 import dnslib.server
@@ -21,14 +19,15 @@ else:
 
 
 class ValidationResolver(dnslib.server.BaseResolver):
-    """
-    Stores an internal dict of TXT DNS entries, which get
-    emitted as requested.
+    """Stores an internal dict of TXT DNS entries.
+
+    Emits TXT responses as requested.
     """
 
     validations: Dict[str, str] = {}
 
     def resolve(self, request, handler):
+        """Reply to DNS entries with NXDOMAIN or proper TXT records."""
         reply = request.reply()
         qname = request.q.qname
 
@@ -47,9 +46,12 @@ class ValidationResolver(dnslib.server.BaseResolver):
 
 
 class VerificationEndpoints(BaseHTTPRequestHandler):
+    """Handle incoming requests to the /present and /cleanup endpoints."""
+
     resolver: Optional[ValidationResolver] = None
 
     def do_POST(self):
+        """Check API key credentials and update DNS validator as needed."""
         if self.server.resolver is None:
             self.send_error(500, explain="DNS validator not attached.")
             self.end_headers()
