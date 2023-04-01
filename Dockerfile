@@ -7,4 +7,4 @@ COPY LICENSE README.md pyproject.toml setup.py ./
 COPY src /code/src
 RUN pip install --no-cache-dir .
 
-CMD ["python", "-m", "internal-acme-dns"]
+CMD ["python", "-u", "-m", "internal-acme-dns"]

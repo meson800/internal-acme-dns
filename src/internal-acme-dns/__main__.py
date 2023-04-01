@@ -133,8 +133,10 @@ validations = ValidationResolver()
 
 
 print('Starting DNS server...', end='', flush=True)
-dns_server = dnslib.server.DNSServer(resolver=validations)
-dns_server.server.timeout = 0.05
+dns_server_udp = dnslib.server.DNSServer(resolver=validations)
+dns_server_udp.server.timeout = 0.05
+dns_server_tcp = dnslib.server.DNSServer(resolver=validations, tcp=True)
+dns_server_tcp.server.timeout = 0.05
 
 print('done!\nStarting HTTP server...', end='', flush=True)
 http_server = HTTPServer(("0.0.0.0", 8080), VerificationEndpoints)
@@ -144,4 +146,5 @@ print('done!\nServing DNS and HTTP :)', flush=True)
 
 while True:
     http_server.handle_request()
-    dns_server.server.handle_request()
+    dns_server_udp.server.handle_request()
+    dns_server_tcp.server.handle_request()
