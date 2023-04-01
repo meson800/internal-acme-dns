@@ -1,5 +1,5 @@
 [api_keys.alpha]
 key = "asdfasdfasdfasdf"
 domains = [
-    "_acme-challenge.jellyfin.tailnet.meson.us.",
+    "_acme-challenge.something.com.",
 ]
