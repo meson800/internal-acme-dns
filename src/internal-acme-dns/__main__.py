@@ -119,8 +119,10 @@ class VerificationEndpoints(BaseHTTPRequestHandler):
         # Finally...process the type of command
         if self.path == "/present":
             self.server.resolver.validations[requested_domain] = txt_value
+            print(f'Added TXT record for domain {requested_domain} for client {api_key_name}')
         elif self.path == "/cleanup":
             if requested_domain in self.server.resolver.validations:
+                print(f'Removed TXT record for domain {requested_domain} for client {api_key_name}')
                 del self.server.resolver.validations[requested_domain]
         else:
             self.send_error(404)
