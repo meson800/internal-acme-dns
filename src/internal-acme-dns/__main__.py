@@ -18,7 +18,7 @@ if "LOCAL_ACME_DNS_CONFIG_FILE" in os.environ:
 else:
     config_file = Path("/etc/acme/config.toml")
 
-zone_id = int(datetime.datetime.now().strftime('%Y%M%d%H%M'))
+zone_id = int(datetime.datetime.now().strftime('%Y%M%d'))
 
 
 class ValidationResolver(dnslib.server.BaseResolver):
