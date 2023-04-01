@@ -7,6 +7,7 @@ import os
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Dict, Optional
+import datetime
 
 import dnslib
 import dnslib.server
@@ -16,6 +17,8 @@ if "LOCAL_ACME_DNS_CONFIG_FILE" in os.environ:
     config_file = Path(os.environ["LOCAL_ACME_DNS_CONFIG_FILE"])
 else:
     config_file = Path("/etc/acme/config.toml")
+
+zone_id = int(datetime.datetime.now().strftime('%Y%M%d%H%M'))
 
 
 class ValidationResolver(dnslib.server.BaseResolver):
@@ -31,7 +34,15 @@ class ValidationResolver(dnslib.server.BaseResolver):
         reply = request.reply()
         qname = request.q.qname
 
+
         if str(qname) in self.validations:
+            config = toml.load(config_file)
+            reply.add_auth(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
+                    config["nameserver"],
+                    config["admin_email"],
+                    (zone_id,3600,3600,3600,3600)
+            )))
+
             reply.add_answer(
                 dnslib.RR(
                     qname,
