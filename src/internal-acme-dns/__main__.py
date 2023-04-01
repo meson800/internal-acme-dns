@@ -33,10 +33,19 @@ class ValidationResolver(dnslib.server.BaseResolver):
         """Reply to DNS entries with NXDOMAIN or proper TXT records."""
         reply = request.reply()
         qname = request.q.qname
+        qtype = dnslib.QTYPE[request.q.qtype]
 
+        config = toml.load(config_file)
+        # Reply to a SOA requests
+        if str(qname).endswith(config['domain']) and qtype == 'SOA':
+            reply.add_answer(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
+                    config["nameserver"],
+                    config["admin_email"],
+                    (zone_id,3600,3600,3600,3600)
+            )))
+            return reply
 
         if str(qname) in self.validations:
-            config = toml.load(config_file)
             reply.add_auth(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
                     config["nameserver"],
                     config["admin_email"],
