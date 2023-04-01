@@ -132,12 +132,15 @@ class VerificationEndpoints(BaseHTTPRequestHandler):
 validations = ValidationResolver()
 
 
+print('Starting DNS server...', end='', flush=True)
 dns_server = dnslib.server.DNSServer(resolver=validations)
 dns_server.server.timeout = 0.05
 
+print('done!\nStarting HTTP server...', end='', flush=True)
 http_server = HTTPServer(("0.0.0.0", 8080), VerificationEndpoints)
 http_server.resolver = validations
 http_server.timeout = 0.05
+print('done!\nServing DNS and HTTP :)', flush=True)
 
 while True:
     http_server.handle_request()
