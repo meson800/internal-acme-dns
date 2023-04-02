@@ -38,28 +38,33 @@ class ValidationResolver(dnslib.server.BaseResolver):
         config = toml.load(config_file)
         # Reply to a SOA requests
         if str(qname).endswith(config['domain']) and qtype == 'SOA':
+            reply.header.rcode = dnslib.RCODE.NOERROR
             reply.add_answer(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
                     config["nameserver"],
                     config["admin_email"],
                     (zone_id,3600,3600,3600,3600)
             )))
             return reply
-
-        if str(qname) in self.validations:
+        
+        # If they asked for a domain for which we are an authority, add this
+        if str(qname).endswith(config['domain']):
             reply.add_auth(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
                     config["nameserver"],
                     config["admin_email"],
                     (zone_id,3600,3600,3600,3600)
             )))
 
-            reply.add_answer(
-                dnslib.RR(
-                    qname,
-                    dnslib.QTYPE.TXT,
-                    rdata=dnslib.TXT(self.validations[str(qname)]),
-                    ttl=1,
+        if str(qname) in self.validations:
+            reply.header.rcode = dnslib.RCODE.NOERROR
+            if qtype == 'TXT':
+                reply.add_answer(
+                    dnslib.RR(
+                        qname,
+                        dnslib.QTYPE.TXT,
+                        rdata=dnslib.TXT(self.validations[str(qname)]),
+                        ttl=1,
+                    )
                 )
-            )
         else:
             reply.header.rcode = dnslib.RCODE.NXDOMAIN
         return reply
