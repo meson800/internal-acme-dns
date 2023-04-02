@@ -36,30 +36,43 @@ class ValidationResolver(dnslib.server.BaseResolver):
         qtype = dnslib.QTYPE[request.q.qtype]
 
         config = toml.load(config_file)
-        # Reply to a SOA requests
-        if str(qname).endswith(config['domain']) and qtype == 'SOA':
-            reply.header.rcode = dnslib.RCODE.NOERROR
-            reply.add_answer(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
-                    config["nameserver"],
-                    config["admin_email"],
-                    (zone_id,3600,3600,3600,3600)
-            )))
-            return reply
-        # Reply to NS requests
-        if str(qname).endswith(config['domain']) and qtype == 'NS':
-            reply.header.rcode = dnslib.RCODE.NOERROR
-            reply.add_answer(dnslib.RR(config["domain"],dnslib.QTYPE.NS,ttl=60,rdata=dnslib.NS(config["nameserver"])))
-            return reply
-        
-        
-        # If they asked for a domain for which we are an authority, add this
-        if str(qname).endswith(config['domain']):
-            reply.add_auth(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
-                    config["nameserver"],
-                    config["admin_email"],
-                    (zone_id,3600,3600,3600,3600)
-            )))
 
+        # If this isn't our root domain or a challenge domain, return NOTZONE and call it a day
+        if not str(qname).endswith(config['domain']):
+            reply.header.rcode = dnslib.RCODE.NOTZONE
+            return reply
+        # If this is the root domain, respond to SOAs or NS
+        if str(qname) == config['domain']:
+            if qtype == 'SOA':
+                reply.header.rcode = dnslib.RCODE.NOERROR
+                reply.add_auth(dnslib.RR(config["domain"],dnslib.QTYPE.NS,ttl=60,rdata=dnslib.NS(config["nameserver"])))
+                reply.add_answer(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
+                        config["nameserver"],
+                        config["admin_email"],
+                        (zone_id,3600,3600,3600,3600)
+                )))
+                return reply
+            elif qtype == 'NS':
+                reply.header.rcode = dnslib.RCODE.NOERROR
+                reply.add_answer(dnslib.RR(config["domain"],dnslib.QTYPE.NS,ttl=60,rdata=dnslib.NS(config["nameserver"])))
+                reply.add_auth(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
+                        config["nameserver"],
+                        config["admin_email"],
+                        (zone_id,3600,3600,3600,3600)
+                )))
+                return reply
+            # Otherwise return empty NOERROR
+            reply.header.rcode = dnslib.RCODE.NOERROR
+            reply.add_auth(dnslib.RR(config["domain"],dnslib.QTYPE.NS,ttl=60,rdata=dnslib.NS(config["nameserver"])))
+            return reply
+
+        # If we are here, we are the authority no matter what.
+        reply.add_auth(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
+                config["nameserver"],
+                config["admin_email"],
+                (zone_id,3600,3600,3600,3600)
+        )))
+        # Check to see if this is a validation request
         if str(qname) in self.validations:
             reply.header.rcode = dnslib.RCODE.NOERROR
             if qtype == 'TXT':
