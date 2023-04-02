@@ -45,6 +45,12 @@ class ValidationResolver(dnslib.server.BaseResolver):
                     (zone_id,3600,3600,3600,3600)
             )))
             return reply
+        # Reply to NS requests
+        if str(qname).endswith(config['domain']) and qtype == 'NS':
+            reply.header.rcode = dnslib.RCODE.NOERROR
+            reply.add_answer(dnslib.RR(config["domain"],dnslib.QTYPE.NS,ttl=60,rdata=dnslib.NS(config["nameserver"])))
+            return reply
+        
         
         # If they asked for a domain for which we are an authority, add this
         if str(qname).endswith(config['domain']):
