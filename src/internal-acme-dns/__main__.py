@@ -80,7 +80,7 @@ class ValidationResolver(dnslib.server.BaseResolver):
                     dnslib.RR(
                         qname,
                         dnslib.QTYPE.TXT,
-                        rdata=dnslib.TXT(self.validations[str(qname)]),
+                        rdata=dnslib.TXT(self.validations[str(qname).lower()]),
                         ttl=1,
                     )
                 )
