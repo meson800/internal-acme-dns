@@ -37,9 +37,7 @@ class ValidationResolver(dnslib.server.BaseResolver):
 
         config = toml.load(config_file)
         # Reply to a SOA requests
-        print(f'qname: {str(qname)}, qtype: {qtype}')
         if str(qname).endswith(config['domain']) and qtype == 'SOA':
-            print('matched our domain; sending SOA back')
             reply.header.rcode = dnslib.RCODE.NOERROR
             reply.add_answer(dnslib.RR(config["domain"],dnslib.QTYPE.SOA,ttl=60,rdata=dnslib.SOA(
                     config["nameserver"],
@@ -49,7 +47,6 @@ class ValidationResolver(dnslib.server.BaseResolver):
             return reply
         # Reply to NS requests
         if str(qname).endswith(config['domain']) and qtype == 'NS':
-            print('matched our domain; sending NS back')
             reply.header.rcode = dnslib.RCODE.NOERROR
             reply.add_answer(dnslib.RR(config["domain"],dnslib.QTYPE.NS,ttl=60,rdata=dnslib.NS(config["nameserver"])))
             return reply
