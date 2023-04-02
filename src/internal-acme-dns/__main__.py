@@ -38,11 +38,11 @@ class ValidationResolver(dnslib.server.BaseResolver):
         config = toml.load(config_file)
 
         # If this isn't our root domain or a challenge domain, return NOTZONE and call it a day
-        if not str(qname).endswith(config['domain']):
+        if not qname.matchSuffix(config['domain']):
             reply.header.rcode = dnslib.RCODE.NOTZONE
             return reply
         # If this is the root domain, respond to SOAs or NS
-        if str(qname) == config['domain']:
+        if qname == config['domain']:
             if qtype == 'SOA':
                 reply.header.rcode = dnslib.RCODE.NOERROR
                 reply.add_auth(dnslib.RR(config["domain"],dnslib.QTYPE.NS,ttl=60,rdata=dnslib.NS(config["nameserver"])))
@@ -73,7 +73,7 @@ class ValidationResolver(dnslib.server.BaseResolver):
                 (zone_id,3600,3600,3600,3600)
         )))
         # Check to see if this is a validation request
-        if str(qname) in self.validations:
+        if any([qname == validation for validation in self.validations]):
             reply.header.rcode = dnslib.RCODE.NOERROR
             if qtype == 'TXT':
                 reply.add_answer(
