@@ -8,6 +8,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Dict, Optional
 import datetime
+import hmac
 
 import dnslib
 import dnslib.server
@@ -88,6 +89,11 @@ class ValidationResolver(dnslib.server.BaseResolver):
             reply.header.rcode = dnslib.RCODE.NXDOMAIN
         return reply
 
+def secure_pass_compare(a: str, b: str) -> bool:
+    """Securely compares passwords using hmac.compare_digest to prevent timing attacks"""
+    # This technically leaks the API key length, but it's long anyway so this doesn't help
+    return hmac.compare_digest(a.encode(), b.encode())
+
 
 class VerificationEndpoints(BaseHTTPRequestHandler):
     """Handle incoming requests to the /present and /cleanup endpoints."""
@@ -132,7 +138,7 @@ class VerificationEndpoints(BaseHTTPRequestHandler):
             return
 
         key_config = credentials["api_keys"][api_key_name]
-        if "key" not in key_config or api_key != key_config["key"]:
+        if "key" not in key_config or not secure_pass_compare(api_key, key_config["key"]):
             self.send_error(401, explain="Invalid basic auth credentials")
             self.end_headers()
             return
